@@ -35,6 +35,13 @@ require_once 'Zend/Db/Expr.php';
 /**
  * Class for SQL SELECT generation and results.
  *
+ * Added by Docnet
+ * @method Zend_Db_Select joinUsing($name, $cond, $cols = '*', $schema = null)
+ * @method Zend_Db_Select joinInnerUsing($name, $cond, $cols = '*', $schema = null)
+ * @method Zend_Db_Select joinFullUsing($name, $cond, $cols = '*', $schema = null)
+ * @method Zend_Db_Select joinRightUsing($name, $cond, $cols = '*', $schema = null)
+ * @method Zend_Db_Select joinLeftUsing($name, $cond, $cols = '*', $schema = null)
+ *
  * @category   Zend
  * @package    Zend_Db
  * @subpackage Select
@@ -44,6 +51,7 @@ require_once 'Zend/Db/Expr.php';
 class Zend_Db_Select
 {
 
+    const SQL_CALC_FOUND_ROWS = 'sqlcalcfoundrows'; // Added by Docnet
     const DISTINCT       = 'distinct';
     const COLUMNS        = 'columns';
     const FROM           = 'from';
@@ -131,6 +139,7 @@ class Zend_Db_Select
      * @var array
      */
     protected static $_partsInit = [
+        self::SQL_CALC_FOUND_ROWS => false, // Added by Docnet
         self::DISTINCT     => false,
         self::COLUMNS      => [],
         self::UNION        => [],
@@ -227,6 +236,20 @@ class Zend_Db_Select
     public function distinct($flag = true)
     {
         $this->_parts[self::DISTINCT] = (bool) $flag;
+        return $this;
+    }
+
+    /**
+     * Makes the query SELECT SQL_CALC_FOUND_ROWS.
+     *
+     * Added by DN 2009-03-26
+     *
+     * @param bool $flag Whether or not to calculate the max found rows
+     * @return Zend_Db_Select This Zend_Db_Select object.
+     */
+    public function sqlCalcFoundRows($flag = true)
+    {
+        $this->_parts[self::SQL_CALC_FOUND_ROWS] = (bool) $flag;
         return $this;
     }
 
@@ -713,7 +736,7 @@ class Zend_Db_Select
      *
      * @param integer $fetchMode OPTIONAL
      * @param  mixed  $bind An array of data to bind to the placeholders.
-     * @return Zend_Db_Statement
+     * @return PDO_Statement|Zend_Db_Statement
      */
     public function query($fetchMode = null, $bind = [])
     {
@@ -1100,6 +1123,23 @@ class Zend_Db_Select
     {
         if ($this->_parts[self::DISTINCT]) {
             $sql .= ' ' . self::SQL_DISTINCT;
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Render SQL_CALC_FOUND_ROWS clause
+     *
+     * Added by DN 2009-03-26
+     *
+     * @param string   $sql SQL query
+     * @return string
+     */
+    protected function _renderSqlcalcfoundrows($sql)
+    {
+        if ($this->_parts[self::SQL_CALC_FOUND_ROWS]) {
+            $sql .= ' SQL_CALC_FOUND_ROWS' ;
         }
 
         return $sql;
