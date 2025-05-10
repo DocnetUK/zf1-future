@@ -44,6 +44,7 @@ require_once 'Zend/Db/Expr.php';
 class Zend_Db_Select
 {
 
+    public const SQL_CALC_FOUND_ROWS = 'sqlcalcfoundrows';
     public const DISTINCT       = 'distinct';
     public const COLUMNS        = 'columns';
     public const FROM           = 'from';
@@ -131,6 +132,7 @@ class Zend_Db_Select
      * @var array
      */
     protected static $_partsInit = [
+        self::SQL_CALC_FOUND_ROWS => false,
         self::DISTINCT     => false,
         self::COLUMNS      => [],
         self::UNION        => [],
@@ -227,6 +229,20 @@ class Zend_Db_Select
     public function distinct($flag = true)
     {
         $this->_parts[self::DISTINCT] = (bool) $flag;
+        return $this;
+    }
+
+    /**
+     * Makes the query SELECT SQL_CALC_FOUND_ROWS.
+     *
+     * Added by DN 2009-03-26
+     *
+     * @param bool $flag Whether or not to calculate the max found rows
+     * @return Zend_Db_Select This Zend_Db_Select object.
+     */
+    public function sqlCalcFoundRows($flag = true)
+    {
+        $this->_parts[self::SQL_CALC_FOUND_ROWS] = (bool) $flag;
         return $this;
     }
 
@@ -1100,6 +1116,23 @@ class Zend_Db_Select
     {
         if ($this->_parts[self::DISTINCT]) {
             $sql .= ' ' . self::SQL_DISTINCT;
+        }
+
+        return $sql;
+    }
+
+    /**
+     * Render SQL_CALC_FOUND_ROWS clause
+     *
+     * Added by DN 2009-03-26
+     *
+     * @param string   $sql SQL query
+     * @return string
+     */
+    protected function _renderSqlcalcfoundrows($sql)
+    {
+        if ($this->_parts[self::SQL_CALC_FOUND_ROWS]) {
+            $sql .= ' SQL_CALC_FOUND_ROWS' ;
         }
 
         return $sql;
